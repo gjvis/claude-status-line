@@ -2,7 +2,7 @@
 
 Custom status line script for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Shows model, effort level, working directory, git branch, a context window usage bar, and estimated free space (accounting for the 16.5% autocompact buffer).
+Shows model, effort level, working directory, git branch, a context window usage bar, and estimated free space (accounting for the ~33k token autocompact buffer, calculated dynamically from the context window size).
 
 ```
 [Opus 4.6/high] ~/project (main) ⛁⛁⛁⛁⛁⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛝⛝⛝⛝⛝⛝⛝⛝⛝ ~77% free

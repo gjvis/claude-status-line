@@ -4,9 +4,12 @@ input=$(cat)
 
 MODEL=$(echo "$input" | jq -r '.model.display_name')
 DIR=$(echo "$input" | jq -r '.workspace.current_dir')
-read -r PCT FREE_PCT < <(echo "$input" | jq -r '
+AUTOCOMPACT_TOKENS=33000
+read -r PCT FREE_PCT BUFFER_PCT < <(echo "$input" | jq -r --argjson buf "$AUTOCOMPACT_TOKENS" '
+  (.context_window.context_window_size // 200000) as $size |
+  ($buf / $size * 100) as $buffer |
   .context_window.used_percentage // empty |
-  [floor, (100 - . - 16.5 | round)] | @tsv')
+  [floor, (100 - . - $buffer | round), ($buffer | round)] | @tsv')
 EFFORT=$(jq -r '.effortLevel // empty' ~/.claude/settings.json 2>/dev/null)
 [ -z "$EFFORT" ] && EFFORT="default"
 CYAN='\033[36m'; GRAY='\033[38;2;153;153;153m'; PURPLE='\033[38;2;178;102;255m'; RESET='\033[0m'
@@ -21,7 +24,7 @@ if [ -n "$PCT" ]; then
   # Build proportional bar (50 segments)
   TOTAL=50
   USED_SEGS=$(( (PCT * TOTAL + 50) / 100 ))
-  AUTO_COMPACT_SEGS=$(( (17 * TOTAL + 50) / 100 ))
+  AUTO_COMPACT_SEGS=$(( (BUFFER_PCT * TOTAL + 50) / 100 ))
   FREE_SEGS=$(( TOTAL - USED_SEGS - AUTO_COMPACT_SEGS ))
   [ $FREE_SEGS -lt 0 ] && FREE_SEGS=0
 
