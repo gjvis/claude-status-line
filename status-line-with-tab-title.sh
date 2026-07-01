@@ -2,7 +2,7 @@
 # Claude Code statusLine command that also sets the iTerm2 tab title.
 #
 # Two jobs from one JSON payload on stdin:
-#   1. set the tab title to "<repo>/<subpath> – <session name>"
+#   1. set the tab title to "<repo>/<subpath>: <session name>"
 #   2. render the status line by delegating to status-line.sh next to this script
 #
 # Claude Code spawns the statusLine command detached from the controlling terminal, so
@@ -37,7 +37,7 @@ if [ -n "$dev" ]; then
     path="${dir/#$HOME/~}"
   fi
   if [ -n "$name" ]; then
-    printf '\e]1;%s – %s\a' "$path" "$name" >"$dev" 2>/dev/null
+    printf '\e]1;%s: %s\a' "$path" "$name" >"$dev" 2>/dev/null
   else
     printf '\e]1;%s\a' "$path" >"$dev" 2>/dev/null
   fi
