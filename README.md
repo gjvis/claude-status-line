@@ -21,9 +21,11 @@ Requires `jq`. Add to `~/.claude/settings.json`:
 }
 ```
 
-## Tab title (iTerm2)
+## Tab title
 
-`status-line-with-tab-title.sh` is a wrapper that renders the status line *and* sets the iTerm2 tab title to `<repo>/<subpath>: <session name>`, where the session name is whatever you set with `/rename` (unnamed sessions show just `<repo>/<subpath>`). It delegates rendering to `status-line.sh` in the same directory, so keep the two files together.
+`status-line-with-tab-title.sh` is a wrapper that renders the status line *and* sets the terminal tab title to `<repo>/<subpath>: <session name>`, where the session name is whatever you set with `/rename` (unnamed sessions show just `<repo>/<subpath>`). It delegates rendering to `status-line.sh` in the same directory, so keep the two files together.
+
+The title is set with an OSC 0 escape (`\e]0;...`), which sets both the window title and the icon/session name, so it works across terminals rather than depending on one terminal's title handling.
 
 Why a wrapper: Claude Code runs the statusLine command detached from the terminal, so it can't set the title via `/dev/tty`. The wrapper finds the terminal device of the ancestor `claude` process by walking the process tree and writes the title escape straight to it.
 
@@ -46,6 +48,13 @@ Setup, in addition to `jq`:
    export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
    ```
 
-3. Enable iTerm2's **Session Name** title component: Settings → Profiles → *your profile* → General → Title → tick **Session Name**. Without it the tab ignores the title the wrapper sets.
+3. Make your terminal display the title the wrapper sets:
+
+   - **iTerm2**: Settings → Profiles → *your profile* → General → Title → tick **Session Name**. Without it the tab ignores the title.
+   - **Ghostty**: its shell integration otherwise overwrites the tab with the running command, so turn that one feature off in `config`:
+
+     ```
+     shell-integration-features = cursor,no-sudo,no-title,no-ssh-env,no-ssh-terminfo,path
+     ```
 
 Then `/rename <name>` sets the summary and the tab updates within a refresh.

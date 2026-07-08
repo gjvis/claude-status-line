@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Code statusLine command that also sets the iTerm2 tab title.
+# Claude Code statusLine command that also sets the terminal tab title.
 #
 # Two jobs from one JSON payload on stdin:
 #   1. set the tab title to "<repo>/<subpath>: <session name>"
@@ -11,8 +11,8 @@
 # it. The device is re-discovered each render so it stays correct if the session is resumed
 # in a different terminal.
 #
-# Requires jq. Also set `export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1` and enable iTerm2's
-# "Session Name" title component (see README).
+# Requires jq. Also set `export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1`; see the README
+# for the per-terminal setup that makes the tab display the title.
 
 input=$(cat)
 
@@ -37,9 +37,9 @@ if [ -n "$dev" ]; then
     path="${dir/#$HOME/~}"
   fi
   if [ -n "$name" ]; then
-    printf '\e]1;%s: %s\a' "$path" "$name" >"$dev" 2>/dev/null
+    printf '\e]0;%s: %s\a' "$path" "$name" >"$dev" 2>/dev/null
   else
-    printf '\e]1;%s\a' "$path" >"$dev" 2>/dev/null
+    printf '\e]0;%s\a' "$path" >"$dev" 2>/dev/null
   fi
 fi
 
