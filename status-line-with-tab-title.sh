@@ -2,7 +2,7 @@
 # Claude Code statusLine command that also sets the terminal tab title.
 #
 # Two jobs from one JSON payload on stdin:
-#   1. set the tab title to "<repo>/<subpath>: <session name>"
+#   1. set the tab title to "<colour> <repo>/<subpath>: <session name>"
 #   2. render the status line by delegating to status-line.sh next to this script
 #
 # Claude Code spawns the statusLine command detached from the controlling terminal, so
@@ -18,6 +18,7 @@ input=$(cat)
 
 dir=$(printf '%s' "$input" | jq -r '.workspace.current_dir // .cwd // empty')
 name=$(printf '%s' "$input" | jq -r '.session_name // empty')
+transcript=$(printf '%s' "$input" | jq -r '.transcript_path // empty')
 
 # Terminal device: the first ttys ancestor.
 dev=""; pid=$$
@@ -36,11 +37,31 @@ if [ -n "$dev" ]; then
   else
     path="${dir/#$HOME/~}"
   fi
-  if [ -n "$name" ]; then
-    printf '\e]0;%s: %s\a' "$path" "$name" >"$dev" 2>/dev/null
-  else
-    printf '\e]0;%s\a' "$path" >"$dev" 2>/dev/null
+
+  # Session accent colour, chosen with /color. It is appended to the transcript as a
+  # standalone {"type":"agent-color","agentColor":"<name>"} record each time it changes,
+  # so the last such record is the current one. A tab title is plain text with no styling,
+  # so the colour can only be carried by a coloured glyph: hearts are the one emoji shape
+  # covering all eight names.
+  colour=""
+  if [ -f "$transcript" ]; then
+    colour=$(LC_ALL=C grep -a '"type":"agent-color"' "$transcript" | tail -1 |
+      jq -r '.agentColor // empty' 2>/dev/null)
   fi
+  case "$colour" in
+    red)    dot="❤️" ;;
+    orange) dot="🧡" ;;
+    yellow) dot="💛" ;;
+    green)  dot="💚" ;;
+    blue)   dot="💙" ;;
+    purple) dot="💜" ;;
+    pink)   dot="🩷" ;;
+    cyan)   dot="🩵" ;;
+    *)      dot="" ;;
+  esac
+
+  title="$path${name:+: $name}"
+  printf '\e]0;%s\a' "${dot:+$dot }$title" >"$dev" 2>/dev/null
 fi
 
 # Render the status line (status-line.sh sits next to this script).
