@@ -2,7 +2,7 @@
 # Claude Code statusLine command that also sets the terminal tab title.
 #
 # Two jobs from one JSON payload on stdin:
-#   1. set the tab title to "<colour> <repo>/<subpath>: <session name>"
+#   1. set the tab title to "<colour> <repo>: <session name>"
 #   2. render the status line by delegating to status-line.sh next to this script
 #
 # Claude Code spawns the statusLine command detached from the controlling terminal, so
@@ -32,8 +32,7 @@ done
 # Tab title, written to the discovered device.
 if [ -n "$dev" ]; then
   if root=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null); then
-    prefix=$(git -C "$dir" rev-parse --show-prefix 2>/dev/null)
-    path="${root##*/}${prefix:+/${prefix%/}}"
+    path="${root##*/}"
   else
     path="${dir/#$HOME/~}"
   fi

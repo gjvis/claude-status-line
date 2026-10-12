@@ -23,7 +23,7 @@ Requires `jq`. Add to `~/.claude/settings.json`:
 
 ## Tab title
 
-`status-line-with-tab-title.sh` is a wrapper that renders the status line *and* sets the terminal tab title to `<colour> <repo>/<subpath>: <session name>`, where the session name is whatever you set with `/rename` (unnamed sessions show just `<repo>/<subpath>`) and the colour is a heart matching the accent colour you set with `/color`. It delegates rendering to `status-line.sh` in the same directory, so keep the two files together.
+`status-line-with-tab-title.sh` is a wrapper that renders the status line *and* sets the terminal tab title to `<colour> <repo>: <session name>`, where `<repo>` is the name of the repository's top-level directory (outside a repository, the working directory relative to `~`), the session name is whatever you set with `/rename` (unnamed sessions show just `<repo>`) and the colour is a heart matching the accent colour you set with `/color`. It delegates rendering to `status-line.sh` in the same directory, so keep the two files together.
 
 The title is set with an OSC 0 escape (`\e]0;...`), which sets both the window title and the icon/session name, so it works across terminals rather than depending on one terminal's title handling.
 
