@@ -2,11 +2,15 @@
 
 Custom status line script for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Shows model, effort level, working directory, git branch, a context window usage bar, and estimated free space (accounting for the ~33k token autocompact buffer, calculated dynamically from the context window size).
+Shows model, effort level, session cost, working directory, git branch, estimated free context and the session id.
 
 ```
-[Opus 4.6/high] ~/project (main) ⛁⛁⛁⛁⛁⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛶⛝⛝⛝⛝⛝⛝⛝⛝⛝ ~77% free
+[Opus 5.5/high] $1.23 ~/project (main) ~74% free 4114a532-d6eb-49d6-b15f-646b55bda0ab
 ```
+
+The free percentage accounts for the ~33k token autocompact buffer, calculated from the context window size. It is green at 50% or more, yellow from 20% to 49%, and red below 20%.
+
+The session id is the full id, so it can be passed to `claude --resume <id>`.
 
 ## Setup
 
