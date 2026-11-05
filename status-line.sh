@@ -7,11 +7,13 @@ DIR=$(echo "$input" | jq -r '.workspace.current_dir')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 SESSION_ID=$(echo "$input" | jq -r '.session_id // empty')
 AUTOCOMPACT_TOKENS=33000
-read -r PCT FREE_PCT BUFFER_PCT < <(echo "$input" | jq -r --argjson buf "$AUTOCOMPACT_TOKENS" '
+USED_PCT=$(echo "$input" | jq -r --argjson buf "$AUTOCOMPACT_TOKENS" '
   (.context_window.context_window_size // 200000) as $size |
-  ($buf / $size * 100) as $buffer |
   .context_window.used_percentage // empty |
-  [floor, (100 - . - $buffer | round), ($buffer | round)] | @tsv')
+  (. + $buf / $size * 100) | round')
+CONTEXT_TOKENS=$(echo "$input" | jq -r '
+  .context_window.current_usage // empty |
+  (.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens)')
 EFFORT=$(echo "$input" | jq -r '.effort.level // empty')
 [ -z "$EFFORT" ] && EFFORT=$(jq -r '.effortLevel // empty' ~/.claude/settings.json 2>/dev/null)
 [ -z "$EFFORT" ] && EFFORT="default"
@@ -27,14 +29,25 @@ DISPLAY_DIR="${DIR/#$HOME/~}"
 SESSION_DISPLAY=""
 [ -n "$SESSION_ID" ] && SESSION_DISPLAY=" ${GRAY}${SESSION_ID}${RESET}"
 
-CONTEXT_DISPLAY=""
-if [ -n "$PCT" ]; then
-  [ "$FREE_PCT" -lt 0 ] 2>/dev/null && FREE_PCT=0
-  if [ "$FREE_PCT" -ge 50 ]; then FREE_COLOUR=$GREEN
-  elif [ "$FREE_PCT" -ge 20 ]; then FREE_COLOUR=$YELLOW
-  else FREE_COLOUR=$RED
+TOKENS_TEXT=""
+if [ -n "$CONTEXT_TOKENS" ]; then
+  if [ "$CONTEXT_TOKENS" -ge 1000 ]; then TOKENS_TEXT="$(( (CONTEXT_TOKENS + 500) / 1000 ))k"
+  else TOKENS_TEXT="$CONTEXT_TOKENS"
   fi
-  CONTEXT_DISPLAY=" ${FREE_COLOUR}~${FREE_PCT}% free${RESET}"
+fi
+
+CONTEXT_DISPLAY=""
+if [ -n "$USED_PCT" ]; then
+  [ "$USED_PCT" -gt 100 ] && USED_PCT=100
+  if [ "$USED_PCT" -le 50 ]; then USED_COLOUR=$GREEN
+  elif [ "$USED_PCT" -le 80 ]; then USED_COLOUR=$YELLOW
+  else USED_COLOUR=$RED
+  fi
+  CONTEXT_TEXT="~${USED_PCT}%"
+  [ -n "$TOKENS_TEXT" ] && CONTEXT_TEXT="${CONTEXT_TEXT} / ${TOKENS_TEXT}"
+  CONTEXT_DISPLAY=" ${USED_COLOUR}${CONTEXT_TEXT}${RESET}"
+elif [ -n "$TOKENS_TEXT" ]; then
+  CONTEXT_DISPLAY=" ${GRAY}${TOKENS_TEXT}${RESET}"
 fi
 
 echo -e "${CYAN}[$MODEL${RESET}${GRAY}/${EFFORT}${RESET}${CYAN}]${RESET}${COST_DISPLAY} ${DISPLAY_DIR}$BRANCH${CONTEXT_DISPLAY}${SESSION_DISPLAY}"
